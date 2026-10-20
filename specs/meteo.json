@@ -1,0 +1,429 @@
+{
+  "source_id": "meteo",
+  "accessible": true,
+  "auth": "none",
+  "confidence": 0.6,
+  "notes": "УкрГМЦ ДСНС (www.meteo.gov.ua), рядок №25 таблиці «Відкриті джерела для ВІМГІП». Під час перевірок 17.10.2026 і 20.10.2026 усі перевірені endpoint відповідали HTTP 200 без авторизації. Класи embedded_js і static_image та складні вирази container не підтверджені кодом колектора, оскільки його реалізація недоступна в репозиторії.\n\nРегіональний відбір. area_constraint позначає цільову область, але сам по собі не фільтрує дані. Джерела не фільтрують записи на сервері; відбір Чернігівщини, дедуплікація та розбір JS-констант не гарантовані специфікацією. Метеостанції можна попередньо відібрати за o = 6 (ключ у METEO_OBLASTI; 7 станцій у перевіреному наборі), гідропости (10) і радіопости (7) — просторово за межею OSM relation 71249. Це результати перевірки, а не функції, які специфікація гарантовано виконує.\n\nJS-набори. _hydro-posts.js, _meteo-stations.js і _radio-posts.js містять JavaScript-константи, а не чистий JSON; їх потрібно розбирати окремо. _meteo-stations.js містить METEO_OBLASTI і METEO_STATIONS. X/x — широта, Y/y — довгота; координати METEO_STATIONS подані рядками. expected_count 237/168/189 — контрольні загальноукраїнські кількості, не кількості після регіонального відбору.\n\nПрогноз погоди. fmi.json повертає прогноз для одного міста, а не всієї області. У перевіреній відповіді Чернігів мав ID 710735; власних координат у прогнозних записах немає, координати міста подані в dataTabs.latlon. Для невідомої назви сервер може повернути Київ, тому слід перевіряти назву та координати. Параметри city і region потрібно передавати в UTF-8 percent-encoding. Кількість прогнозних записів змінюється; у перевірених відповідях pop був null, а інші поля також можуть бути null. Формат специфікацій не має підтвердженого способу позначення nullable-типів.\n\nПопередження. Публічні _attns-meteo.json і _attns-hydro.json містять машиночитані дані, хоча таблиця джерел стверджує, що такого API немає. Опис структури базується на відповідях, перевірених 20.10.2026, і не гарантує незмінності даних. Корінь містить MAP, UPD і OBJ; записи мають поля O, U, R, L, A, а A містить елементи з C, T, P, D. У перевірених відповідях непорожні групи містили дублікати; формат специфікації не задає дедуплікацію. Для метеопопереджень R = 6 означав Чернігівську область. У гідрологічних даних R для Чернігівщини відповідав кодам 35, 38, 57, 66; записи L = \"sb\" описували суббасейни без попереджень і мали інші типи R та A. JSONPath-фільтр у container відкидає ці записи в перевірених даних, але його підтримку колектором не підтверджено. На 20.10.2026 попереджень для Чернігівщини не було, тому регіональний відбір не перевірений на фактичних записах. Полігони за U не запитувались, оскільки їхні URL розташовані в розділі /_/, закритому в robots.txt. _attns-fire.json на момент перевірки містив 6 порожніх груп OBJ; структуру записів не підтверджено, endpoint не додано.\n\nРастри та інші джерела. Fire_*.png віддаються з MIME image/png, але перевірена сигнатура файлів відповідає JPEG. Sputn-01.jpg — ІЧ-знімок METEOSAT Європи. Геоприв'язку растрових файлів не підтверджено, тому автоматичний просторовий відбір неможливий. Сторінку «Щоденна гідрологічна ситуація» не включено як окремий endpoint, оскільки доступного способу отримати структуровані дані не підтверджено. Visicom — комерційна базова картографічна підкладка, а не тематичні дані УкрГМЦ; до endpoints її не включено. Перевірка окремих тайлів не підтверджує дозволу на автоматичний збір або умов ліцензії. Відкриту ліцензію для матеріалів meteo.gov.ua не підтверджено; у футері зазначено «Усі права захищено», із вимогою посилання на сайт.",
+  "area_constraint": {
+    "type": "region",
+    "name": "Чернігівська область"
+  },
+  "endpoints": [
+    {
+      "url": "https://www.meteo.gov.ua/ua/_hydro-posts.js",
+      "method": "GET",
+      "access_class": "embedded_js",
+      "params": {},
+      "expected_format": "application/javascript",
+      "expected_count": 237,
+      "pagination": "none",
+      "geometry": {
+        "type": "point",
+        "format": "числові поля X (широта) і Y (довгота)",
+        "x": "Y",
+        "y": "X",
+        "crs": "EPSG:4326",
+        "crs_verified_by": "CRS у файлі не вказано; EPSG:4326 прийнято за діапазонами значень (широта 44.4–52.2, довгота 22.1–39.9 — у межах України)"
+      },
+      "container": "$.HYDRO_POSTS.*",
+      "attributes": [
+        {
+          "name": "R",
+          "type": "string"
+        },
+        {
+          "name": "X",
+          "type": "number"
+        },
+        {
+          "name": "Y",
+          "type": "number"
+        },
+        {
+          "name": "P",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "url": "https://www.meteo.gov.ua/ua/_meteo-stations.js",
+      "method": "GET",
+      "access_class": "embedded_js",
+      "params": {},
+      "expected_format": "application/javascript",
+      "expected_count": 168,
+      "pagination": "none",
+      "geometry": {
+        "type": "point",
+        "format": "поля x (широта) і y (довгота) — рядки з числом",
+        "x": "y",
+        "y": "x",
+        "crs": "EPSG:4326",
+        "crs_verified_by": "CRS у файлі не вказано; EPSG:4326 прийнято за діапазонами значень (широта 44.4–52.2, довгота 22.1–39.9 — у межах України)"
+      },
+      "container": "$.METEO_STATIONS.*",
+      "attributes": [
+        {
+          "name": "i",
+          "type": "number"
+        },
+        {
+          "name": "o",
+          "type": "number"
+        },
+        {
+          "name": "h",
+          "type": "number"
+        },
+        {
+          "name": "k",
+          "type": "number"
+        },
+        {
+          "name": "t",
+          "type": "string"
+        },
+        {
+          "name": "x",
+          "type": "string"
+        },
+        {
+          "name": "y",
+          "type": "string"
+        },
+        {
+          "name": "z",
+          "type": "number"
+        },
+        {
+          "name": "dx",
+          "type": "number"
+        },
+        {
+          "name": "dy",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "url": "https://www.meteo.gov.ua/ua/_radio-posts.js",
+      "method": "GET",
+      "access_class": "embedded_js",
+      "params": {},
+      "expected_format": "application/javascript",
+      "expected_count": 189,
+      "pagination": "none",
+      "geometry": {
+        "type": "point",
+        "format": "числові поля X (широта) і Y (довгота)",
+        "x": "Y",
+        "y": "X",
+        "crs": "EPSG:4326",
+        "crs_verified_by": "CRS у файлі не вказано; EPSG:4326 прийнято за діапазонами значень (широта 44.4–52.2, довгота 22.1–39.9 — у межах України)"
+      },
+      "container": "$.RADIO_POSTS.*",
+      "attributes": [
+        {
+          "name": "P",
+          "type": "string"
+        },
+        {
+          "name": "X",
+          "type": "number"
+        },
+        {
+          "name": "Y",
+          "type": "number"
+        },
+        {
+          "name": "H",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "url": "https://www.meteo.gov.ua/fmi.json",
+      "method": "GET",
+      "access_class": "public_api",
+      "params": {
+        "city": "Чернігів",
+        "region": "Чернігівська",
+        "lang": "ua",
+        "action": "getCityWeather"
+      },
+      "expected_format": "application/json",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": "$.data.*[*]",
+      "attributes": [
+        {
+          "name": "epochtime",
+          "type": "number"
+        },
+        {
+          "name": "localtime",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "sunrise",
+          "type": "string"
+        },
+        {
+          "name": "sunset",
+          "type": "string"
+        },
+        {
+          "name": "sunriseToday",
+          "type": "number"
+        },
+        {
+          "name": "sunsetToday",
+          "type": "number"
+        },
+        {
+          "name": "dayLength",
+          "type": "number"
+        },
+        {
+          "name": "modtime",
+          "type": "string"
+        },
+        {
+          "name": "dark",
+          "type": "number"
+        },
+        {
+          "name": "temperature",
+          "type": "number"
+        },
+        {
+          "name": "dewPoint",
+          "type": "number"
+        },
+        {
+          "name": "smartSymbol",
+          "type": "number"
+        },
+        {
+          "name": "smartSymbolText",
+          "type": "string"
+        },
+        {
+          "name": "windDirection",
+          "type": "number"
+        },
+        {
+          "name": "windSpeedMS",
+          "type": "number"
+        },
+        {
+          "name": "pop",
+          "type": "null"
+        },
+        {
+          "name": "hourlymaximumgust",
+          "type": "number"
+        },
+        {
+          "name": "humidity",
+          "type": "number"
+        },
+        {
+          "name": "pressure",
+          "type": "number"
+        },
+        {
+          "name": "precipitation",
+          "type": "number"
+        },
+        {
+          "name": "precipitation1h",
+          "type": "number"
+        },
+        {
+          "name": "windCompass8",
+          "type": "string"
+        },
+        {
+          "name": "windgust",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "url": "https://www.meteo.gov.ua/ua/_attns-meteo.json",
+      "method": "GET",
+      "access_class": "public_api",
+      "params": {},
+      "expected_format": "application/json",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": "$.OBJ[*][*]",
+      "attributes": [
+        {
+          "name": "O",
+          "type": "string"
+        },
+        {
+          "name": "U",
+          "type": "string"
+        },
+        {
+          "name": "R",
+          "type": "number"
+        },
+        {
+          "name": "L",
+          "type": "number"
+        },
+        {
+          "name": "A",
+          "type": "array"
+        },
+        {
+          "name": "A[*].C",
+          "type": "number"
+        },
+        {
+          "name": "A[*].T",
+          "type": "number"
+        },
+        {
+          "name": "A[*].P",
+          "type": "string"
+        },
+        {
+          "name": "A[*].D",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "url": "https://www.meteo.gov.ua/ua/_attns-hydro.json",
+      "method": "GET",
+      "access_class": "public_api",
+      "params": {},
+      "expected_format": "application/json",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": "$.OBJ[*][?(@.L != 'sb')]",
+      "attributes": [
+        {
+          "name": "O",
+          "type": "string"
+        },
+        {
+          "name": "U",
+          "type": "string"
+        },
+        {
+          "name": "R",
+          "type": "number"
+        },
+        {
+          "name": "L",
+          "type": "string"
+        },
+        {
+          "name": "A",
+          "type": "array"
+        },
+        {
+          "name": "A[*].C",
+          "type": "number"
+        },
+        {
+          "name": "A[*].T",
+          "type": "number"
+        },
+        {
+          "name": "A[*].P",
+          "type": "string"
+        },
+        {
+          "name": "A[*].D",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "url": "https://www.meteo.gov.ua/f/fire/Fire_Current.png",
+      "method": "GET",
+      "access_class": "static_image",
+      "params": {},
+      "expected_format": "image/png",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": null,
+      "attributes": []
+    },
+    {
+      "url": "https://www.meteo.gov.ua/f/fire/Fire_Forecast_now.png",
+      "method": "GET",
+      "access_class": "static_image",
+      "params": {},
+      "expected_format": "image/png",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": null,
+      "attributes": []
+    },
+    {
+      "url": "https://www.meteo.gov.ua/f/fire/Fire_Forecast_1.png",
+      "method": "GET",
+      "access_class": "static_image",
+      "params": {},
+      "expected_format": "image/png",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": null,
+      "attributes": []
+    },
+    {
+      "url": "https://www.meteo.gov.ua/f/fire/Fire_Forecast_2.png",
+      "method": "GET",
+      "access_class": "static_image",
+      "params": {},
+      "expected_format": "image/png",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": null,
+      "attributes": []
+    },
+    {
+      "url": "https://www.meteo.gov.ua/f/fire/Fire_Forecast_3.png",
+      "method": "GET",
+      "access_class": "static_image",
+      "params": {},
+      "expected_format": "image/png",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": null,
+      "attributes": []
+    },
+    {
+      "url": "https://www.meteo.gov.ua/sputnik_map/Sputn-01.jpg",
+      "method": "GET",
+      "access_class": "static_image",
+      "params": {},
+      "expected_format": "image/jpeg",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": null,
+      "attributes": []
+    }
+  ]
+}
