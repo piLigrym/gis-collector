@@ -1,0 +1,300 @@
+{
+  "source_id": "kadastrova_karta",
+  "accessible": true,
+  "auth": "none",
+  "confidence": 0.6,
+  "notes": "Джерело: рядок №2 таблиці «Відкриті джерела для ВІМГІП перевірені». Неофіційне джерело; щоденне оновлення підтверджене лише частково. Кадастрові дані (kadastr) брати як зріз без гарантії щоденного оновлення. Аукціони (auctions): актуальність підтверджена перевіркою 24.09.2026. Продажі OLX (sales): шар доступний для збору, але свіжість не підтверджена — потрібне щоденне порівняння кількості об'єктів. styles.json — допоміжний metadata/style endpoint, не джерело атрибутів об'єктів. Тайли data.gki.com.ua (soil, crop2023) за перевіркою 24.09.2026 повертають 404 і не використовуються. Збір лише в межах Чернігівської області: тайли визначаються кодом за фактичним перетином із межею області (технічне обмеження, не endpoint). Повторна перевірка 05.10.2026: усі endpoint відповіли без авторизації. REST landuse: у відповіді немає поля crs; координати geometry — у діапазоні градусів lon/lat і збігаються з MVT-геометрією тієї ж ділянки. kadastr land_polygons: тип геометрії не підтверджено для всього шару — перелік types отримано з одного тестового тайла. expected_count для тайлових endpoint = null: кількість об'єктів у тестових тайлах не є кількістю об'єктів джерела. Аукціони: на дату перевірки 05.10.2026 в межах Чернігівської області об'єктів не знайдено, тому second_sample_params і crs не визначено. Підтвердження перевірок 05.10.2026 (межа області — полігон OSM relation 71249 «Чернігівська область» через Nominatim): second_sample_params kadastr (11, 1205, 688) підтверджено перетином із Чернігівською областю: bbox тайла перетинає полігон області, HTTP 200, 3 з 60 ділянок land_polygons мають representative point у межах області. second_sample_params sales (11, 1211, 690) підтверджено перетином із Чернігівською областю: bbox тайла перетинає полігон області, HTTP 200, 1 з 1 точки land_sales_points у межах області. crs_verified_by kadastr: перевірку виконано — тайл 11/1205/688 розпаковано, геометрію ділянки 7423883000:02:001:3044 переведено з координат тайла через XYZ Web Mercator у lon/lat, її центроїд порівняно з центроїдом geometry з REST landuse для того самого cadnum; відстань 1.64 м. REST landuse для 7423883000:02:001:3044: фактична відповідь — HTTP 200, один JSON-об'єкт у корені без обгортки (ключі cadnum, category, purpose_code, …, geometry), address = null (не порожній рядок), geometry.type = MultiPolygon. styles.json: фактична відповідь — HTTP 200, JSON-об'єкт у корені (ключі version, name, metadata, sprite, sources, glyphs, layers, id). Повторну перевірку 05.10.2026 виконано без авторизації: kadastr 11/1205/688 — 200; sales 11/1211/690 — 200; auctions — усі 8 тайлів z8, що перетинають область, — 200; styles.json — 200; landuse/7423883000:02:001:3044 — 200. Аукціони: у цих 8 тайлах z8 жодна точка auction_points не лежить у межах області (вибірковою перевіркою кількість точок у тайлі z8 дорівнювала сумі в дочірніх тайлах z9, тобто z8 не відкидає точки).",
+  "area_constraint": {
+    "type": "region",
+    "name": "Чернігівська область"
+  },
+  "endpoints": [
+    {
+      "url": "https://kadastrova-karta.com/tiles/maps/kadastr/{z}/{x}/{y}.pbf",
+      "method": "GET",
+      "access_class": "public_tile",
+      "params": {},
+      "expected_format": "application/vnd.mapbox-vector-tile",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": {
+        "location": "всередині vector tile (MVT)",
+        "layers": {
+          "land_polygons": {
+            "types": [
+              "Polygon"
+            ],
+            "extent": 4096
+          }
+        },
+        "crs": "EPSG:3857",
+        "crs_verified_by": "центроїд ділянки 7423883000:02:001:3044 з MVT (XYZ Web Mercator) збігається з REST landuse: 1.64 м"
+      },
+      "container": null,
+      "attributes": [
+        {
+          "layer": "land_polygons",
+          "name": "ownership",
+          "type": "string"
+        },
+        {
+          "layer": "land_polygons",
+          "name": "cadnum",
+          "type": "string"
+        },
+        {
+          "layer": "land_polygons",
+          "name": "purpose",
+          "type": "string"
+        },
+        {
+          "layer": "land_polygons",
+          "name": "purpose_code",
+          "type": "string"
+        },
+        {
+          "layer": "land_polygons",
+          "name": "area",
+          "type": "number"
+        },
+        {
+          "layer": "land_polygons",
+          "name": "category",
+          "type": "string"
+        }
+      ],
+      "second_sample_params": {
+        "z": 11,
+        "x": 1205,
+        "y": 688
+      }
+    },
+    {
+      "url": "https://kadastrova-karta.com/tiles/maps/auctions/{z}/{x}/{y}.pbf",
+      "method": "GET",
+      "access_class": "public_tile",
+      "params": {},
+      "expected_format": "application/vnd.mapbox-vector-tile",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": {
+        "location": "всередині vector tile (MVT)",
+        "layers": {
+          "auction_points": {
+            "types": [
+              "Point"
+            ],
+            "extent": 4096
+          }
+        },
+        "crs": null
+      },
+      "container": null,
+      "attributes": [
+        {
+          "layer": "auction_points",
+          "name": "auction_id",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "cadnum",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "status",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "auction_type",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "auction_date",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "starting_price",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "currency",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "price_label",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "object_title",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "public_url",
+          "type": "string"
+        },
+        {
+          "layer": "auction_points",
+          "name": "area",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "url": "https://kadastrova-karta.com/tiles/maps/sales/{z}/{x}/{y}.pbf",
+      "method": "GET",
+      "access_class": "public_tile",
+      "params": {},
+      "expected_format": "application/vnd.mapbox-vector-tile",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": {
+        "location": "всередині vector tile (MVT)",
+        "layers": {
+          "land_sales_points": {
+            "types": [
+              "Point"
+            ],
+            "extent": 4096
+          }
+        },
+        "crs": null
+      },
+      "container": null,
+      "attributes": [
+        {
+          "layer": "land_sales_points",
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "layer": "land_sales_points",
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "layer": "land_sales_points",
+          "name": "public_url",
+          "type": "string"
+        },
+        {
+          "layer": "land_sales_points",
+          "name": "sale_price",
+          "type": "string"
+        },
+        {
+          "layer": "land_sales_points",
+          "name": "currency",
+          "type": "string"
+        },
+        {
+          "layer": "land_sales_points",
+          "name": "published_on",
+          "type": "string"
+        },
+        {
+          "layer": "land_sales_points",
+          "name": "price_label",
+          "type": "string"
+        },
+        {
+          "layer": "land_sales_points",
+          "name": "promoted",
+          "type": "boolean"
+        }
+      ],
+      "second_sample_params": {
+        "z": 11,
+        "x": 1211,
+        "y": 690
+      }
+    },
+    {
+      "url": "https://kadastrova-karta.com/map/styles.json",
+      "method": "GET",
+      "access_class": "public_metadata",
+      "params": {},
+      "expected_format": "application/json",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": null,
+      "container": "$",
+      "attributes": []
+    },
+    {
+      "url": "https://back.geoserver.click/api/landuse/{cadnum}",
+      "method": "GET",
+      "access_class": "public_api",
+      "params": {},
+      "expected_format": "application/json",
+      "expected_count": null,
+      "pagination": "none",
+      "geometry": {
+        "path": "$.geometry",
+        "format": "GeoJSON geometry",
+        "types": [
+          "MultiPolygon"
+        ],
+        "crs": null
+      },
+      "container": "$",
+      "attributes": [
+        {
+          "name": "cadnum",
+          "type": "string"
+        },
+        {
+          "name": "category",
+          "type": "string"
+        },
+        {
+          "name": "purpose_code",
+          "type": "string"
+        },
+        {
+          "name": "purpose",
+          "type": "string"
+        },
+        {
+          "name": "use",
+          "type": "string"
+        },
+        {
+          "name": "area",
+          "type": "number"
+        },
+        {
+          "name": "unit_area",
+          "type": "string"
+        },
+        {
+          "name": "ownershipcode",
+          "type": "string"
+        },
+        {
+          "name": "ownership",
+          "type": "string"
+        },
+        {
+          "name": "address",
+          "type": "null"
+        },
+        {
+          "name": "geometry",
+          "type": "object"
+        }
+      ],
+      "second_sample_params": {
+        "cadnum": "7423883000:02:001:3044"
+      }
+    }
+  ]
+}

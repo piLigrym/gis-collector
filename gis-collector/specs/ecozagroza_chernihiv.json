@@ -1,0 +1,30 @@
+{
+  "source_id": "ecozagroza_chernihiv",
+  "accessible": true,
+  "auth": "none",
+  "confidence": 0.95,
+  "notes": "Офіційний ресурс Міністерства захисту довкілля та природних ресурсів України (ЕкоЗагроза). Публічні REST API сенсорів радіації та якості повітря, а також маркерів екозагроз. Фільтрація по Чернігівській області здійснюється на стороні клієнта за BBOX (30.49, 50.46, 33.50, 52.38). Координати WGS84 (EPSG:4326). Перевірено 2026-10-10 (curl + Chrome MCP, XHR з https://ecozagroza.gov.ua/map?layer=...): radiation — 671 станція по Україні, у BBOX Чернігівщини — 31; air_pollution — 345 станцій, у BBOX — 27. Кількості збігаються з полем count у https://sensor.ecozagroza.gov.ua/api/sensors/types. Пагінації немає (параметр page ігнорується), відповідь — плоский масив без обгортки, null-координат немає. CORS: Access-Control-Allow-Origin *. На порталі банер про часткове відновлення роботи сервісу (тривають технічні роботи з відновлення історичних даних). BBOX — прямокутник, тому може захоплювати точки сусідніх областей (Київщина, Сумщина) та Білорусі; для точної вибірки потрібна перевірка point-in-polygon за межею області.",
+  "endpoints": [
+    {
+      "url": "https://sensor.ecozagroza.gov.ua/api/sensors",
+      "method": "GET",
+      "access_class": "api_rest",
+      "params": {
+        "layer": "radiation"
+      },
+      "expected_format": "application/json",
+      "pagination": "none",
+      "geometry": {
+        "type": "point",
+        "x": "longitude",
+        "y": "latitude",
+        "crs": "EPSG:4326"
+      },
+      "container": "$",
+      "attributes": ["id", "latitude", "longitude", "layer", "markerIcon", "indexValue"],
+      "second_sample_params": {
+        "layer": "air_pollution"
+      }
+    }
+  ]
+}

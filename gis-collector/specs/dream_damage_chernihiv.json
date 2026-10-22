@@ -1,0 +1,149 @@
+{
+  "source_id": "dream_damage_chernihiv",
+  "accessible": true,
+  "auth": "none",
+  "confidence": 0.8,
+  "notes": "Екосистема DREAM (Карта пошкоджень та відновлення map.dream.gov.ua). Публічне REST API (OCDS-подібна модель) на хості https://public-api.dream.gov.ua (а не api.dream.gov.ua — той віддає HTTP 451; бекенд самої карти staging.map-back.dream.gov.ua/api/dream-objects на 2026-10-10 віддає 502/503). Перевірено curl 2026-10-10: objects — 29153 записи, ideas — 16172. Списки повертають лише {internal.id, internal.code, external.updated}, фіксовано 1000 записів на сторінку; параметри limit/offset/region/katottg ігноруються — пагінація курсором ?from=<external.updated останнього запису> до порожньої/неповної сторінки. Серверного фільтра по області немає: Чернігівська область відбирається на клієнті з деталей за префіксом коду КАТОТТГ 'UA74' у locations[].gazetteer.identifiers (scheme UA-CATOTTG). У вибірці 800 об'єктів UA74 = 33 (~4%, оцінка ~1200 об'єктів по області). Координати (locations[].geometry.coordinates = [lon, lat] рядками, WGS84) є лише у ~5% об'єктів і в жодному з чернігівських у вибірці — основна просторова прив'язка атрибутивна (КАТОТТГ громади/населеного пункту) + текстова адреса locations[].description. Об'єкти (objects) — це пошкоджені/відновлювані функціональні об'єкти (документи illustrationDamaged, зв'язок relatedProcesses зі scheme UA-RDDP = Реєстр пошкодженого майна); проєкти (ideas) посилаються на об'єкти через cdu_response.relatedProcesses[relationship=object].identifier, локації проєктів — у cdu_response.approaches[*].items[*].locations. Фактична структура деталей відрізняється від Swagger (open-contracting.github.io/dream-api-docs/openapi.yaml): поля загорнуті в {internal, cdu_response}. Ендпоінт GET /objects (список) у Swagger не задокументований, але працює. Посилання documents[].url/download на перевірці повернуло 404.",
+  "endpoints": [
+    {
+      "url": "https://public-api.dream.gov.ua/marketplace/public/dream/objects",
+      "method": "GET",
+      "access_class": "api_rest",
+      "role": "index",
+      "params": {
+        "from": "<external.updated останнього запису попередньої сторінки, ISO 8601>"
+      },
+      "expected_format": "application/json",
+      "pagination": "cursor",
+      "pagination_details": {
+        "cursor_param": "from",
+        "cursor_value": "$.data[-1].external.updated",
+        "page_size": 1000,
+        "page_size_configurable": false,
+        "stop_condition": "len(data) < 1000 or len(data) == 0"
+      },
+      "geometry": null,
+      "container": "$.data",
+      "attributes": ["internal.id", "internal.code", "external.updated"]
+    },
+    {
+      "url": "https://public-api.dream.gov.ua/marketplace/public/dream/objects/{id}",
+      "method": "GET",
+      "access_class": "api_rest",
+      "role": "detail",
+      "params": {
+        "id": "$.data[*].internal.id з ендпоінта objects"
+      },
+      "expected_format": "application/json",
+      "pagination": "none",
+      "filter": {
+        "type": "client_side",
+        "field": "cdu_response.locations[*].gazetteer.identifiers[*]",
+        "scheme": "UA-CATOTTG",
+        "match": "prefix",
+        "value": "UA74"
+      },
+      "geometry": {
+        "type": "point",
+        "optional": true,
+        "path": "cdu_response.locations[*].geometry.coordinates",
+        "x": "coordinates[0] (longitude, string)",
+        "y": "coordinates[1] (latitude, string)",
+        "crs": "EPSG:4326",
+        "fallback": "cdu_response.locations[*].gazetteer.identifiers[*] (КАТОТТГ) — геокодування за довідником КАТОТТГ / адресою locations[*].description"
+      },
+      "container": "$",
+      "attributes": [
+        "internal.id",
+        "internal.code",
+        "internal.status",
+        "cdu_response.date",
+        "cdu_response.updated",
+        "cdu_response.status",
+        "cdu_response.statusDetails",
+        "cdu_response.title[*].translation",
+        "cdu_response.description[*].translation",
+        "cdu_response.locations[*].gazetteer.identifiers",
+        "cdu_response.locations[*].description",
+        "cdu_response.locations[*].geometry.coordinates",
+        "cdu_response.parties[*].identifier.id",
+        "cdu_response.parties[*].identifier.legalName",
+        "cdu_response.parties[*].roles",
+        "cdu_response.classification.id",
+        "cdu_response.additionalClassifications[*].id",
+        "cdu_response.documents[*].documentType",
+        "cdu_response.relatedProcesses[*].scheme",
+        "cdu_response.relatedProcesses[*].identifier",
+        "cdu_response.relatedProcesses[*].relationship"
+      ]
+    },
+    {
+      "url": "https://public-api.dream.gov.ua/marketplace/public/dream/ideas",
+      "method": "GET",
+      "access_class": "api_rest",
+      "role": "index",
+      "params": {
+        "from": "<external.updated останнього запису попередньої сторінки, ISO 8601>"
+      },
+      "expected_format": "application/json",
+      "pagination": "cursor",
+      "pagination_details": {
+        "cursor_param": "from",
+        "cursor_value": "$.data[-1].external.updated",
+        "page_size": 1000,
+        "page_size_configurable": false,
+        "stop_condition": "len(data) < 1000 or len(data) == 0"
+      },
+      "geometry": null,
+      "container": "$.data",
+      "attributes": ["internal.id", "internal.code", "external.updated"]
+    },
+    {
+      "url": "https://public-api.dream.gov.ua/marketplace/public/dream/ideas/{id}",
+      "method": "GET",
+      "access_class": "api_rest",
+      "role": "detail",
+      "params": {
+        "id": "$.data[*].internal.id з ендпоінта ideas"
+      },
+      "expected_format": "application/json",
+      "pagination": "none",
+      "filter": {
+        "type": "client_side",
+        "field": "cdu_response.approaches[*].items[*].locations[*].gazetteer.identifiers[*]",
+        "scheme": "UA-CATOTTG",
+        "match": "prefix",
+        "value": "UA74"
+      },
+      "geometry": {
+        "type": "point",
+        "optional": true,
+        "path": "cdu_response.approaches[*].items[*].locations[*].geometry.coordinates",
+        "x": "coordinates[0] (longitude, string)",
+        "y": "coordinates[1] (latitude, string)",
+        "crs": "EPSG:4326",
+        "fallback": "КАТОТТГ з locations[*].gazetteer.identifiers або координати пов'язаного об'єкта (relatedProcesses[relationship=object].identifier -> objects/{id})"
+      },
+      "container": "$",
+      "attributes": [
+        "internal.id",
+        "internal.code",
+        "internal.status",
+        "cdu_response.code",
+        "cdu_response.date",
+        "cdu_response.updated",
+        "cdu_response.type",
+        "cdu_response.purpose",
+        "cdu_response.status",
+        "cdu_response.statusDetails",
+        "cdu_response.title[*].translation",
+        "cdu_response.description[*].translation",
+        "cdu_response.parties[*].identifier.legalName",
+        "cdu_response.approaches[*].items[*].locations[*].gazetteer.identifiers",
+        "cdu_response.approaches[*].items[*].locations[*].description",
+        "cdu_response.relatedProcesses[*].identifier",
+        "cdu_response.relatedProcesses[*].relationship"
+      ]
+    }
+  ]
+}
