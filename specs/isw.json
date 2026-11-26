@@ -1,0 +1,48 @@
+{
+  "source_id": "isw_conflict_territory",
+  "accessible": false,
+  "auth": null,
+  "confidence": 0.2,
+  "notes": "Institute for the Study of War (ISW), рядок №18 таблиці «Відкриті джерела для ВІМГІП». У таблиці вказані растрові карти PNG/WebP та аналітичні звіти через WordPress REST API (/wp-json/wp/v2/map, /wp-json/wp/v2/posts). Параметр focus-area=828 наведено за таблицею; його значення та фільтрацію саме для Чернігівської області не підтверджено. За даними таблиці від 24.09.2026, API відповідав; наведені показники давності карти й звіту є історичними. Під час перевірки 16.10.2026 запити до обох endpoint, robots.txt та сторінки умов використання повертали HTTP 403 із ознакою cf-mitigated: challenge та HTML-вмістом. Запити з різних User-Agent не дали змоги отримати JSON. За результатами додаткової перевірки через check-host.net, понад 40 локацій також повертали HTTP 403; це вказує на широке обмеження стандартних HTTP-запитів, але не доводить постійної недоступності API для всіх клієнтів. Структуру записів, поля, Content-Type успішної API-відповіді, пагінацію, вміст _embedded wp:featuredmedia та релевантність даних для Чернігівської області не перевірено. Ліцензію не підтверджено. Геоприв’язку растрових карт не підтверджено. Специфікація попередня; доступність, придатність до збору та регіональну релевантність необхідно перевірити після отримання доступної відповіді API.",
+  "endpoints": [
+    {
+      "url": "https://understandingwar.org/wp-json/wp/v2/map",
+      "method": "GET",
+      "access_class": "public_api",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "application/json"
+      },
+      "params": {
+        "focus-area": 828,
+        "orderby": "date",
+        "order": "desc",
+        "_embed": "wp:featuredmedia"
+      },
+      "expected_format": null,
+      "expected_count": null,
+      "pagination": null,
+      "geometry": null,
+      "container": null,
+      "attributes": []
+    },
+    {
+      "url": "https://understandingwar.org/wp-json/wp/v2/posts",
+      "method": "GET",
+      "access_class": "public_api",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "application/json"
+      },
+      "params": {
+        "focus-area": 828
+      },
+      "expected_format": null,
+      "expected_count": null,
+      "pagination": null,
+      "geometry": null,
+      "container": null,
+      "attributes": []
+    }
+  ]
+}
